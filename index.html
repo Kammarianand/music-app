@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Web 3.0 Music Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; }
+        #background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .animate-spin-slow {
+            animation: spin-slow 10s linear infinite;
+        }
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .glow {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .inactive {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .visualizer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 50px;
+            width: 100%;
+        }
+        .visualizer-bar {
+            width: 3px;
+            background-color: cyan;
+            transition: height 0.1s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 to-indigo-900 min-h-screen flex items-center justify-center">
+    <div id="background"></div>
+    <div class="w-80 p-6 rounded-3xl backdrop-blur-xl bg-white/10 shadow-2xl relative z-10 glow float">
+        <div class="relative w-full h-48 mb-6">
+            <!-- Rotating CD -->
+            <div class="absolute inset-0 flex items-center justify-center animate-spin-slow">
+                <div class="w-40 h-40 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-full bg-white/30"></div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <h2 class="text-xl font-bold text-white mb-2 truncate">kanmani anbodu kadhalan</h2>
+        <p class="text-sm text-cyan-300 mb-4">web 3.o Music Player</p>
+        
+    
+        <div class="visualizer mb-4"></div>
+        
+        
+        <div class="w-full h-2 bg-gray-600 rounded-full mb-4">
+            <div id="progress" class="w-0 h-full bg-cyan-400 rounded-full transition-all duration-300"></div>
+        </div>
+        
+        
+        <div class="flex justify-between items-center">
+            <button id="backward" class="text-white hover:text-cyan-300 transform hover:scale-110 transition-all inactive">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <button id="playPause" class="text-white hover:text-cyan-300 transform hover:scale-110 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+            <button id="forward" class="text-white hover:text-cyan-300 transform hover:scale-110 transition-all inactive">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const audio = new Audio('https://dl.dropboxusercontent.com/scl/fi/g7u0mgm2uba3gsa8ulu2t/kanmani-anbodu-song-ringtone-guna-manjummal-boys-trending-bgm-2123978084.mp3?rlkey=brlhfl6sqvqrdxdsjsj10kbxv&dl=0');
+        const playPauseBtn = document.getElementById('playPause');
+        const progress = document.getElementById('progress');
+        const backwardBtn = document.getElementById('backward');
+        const forwardBtn = document.getElementById('forward');
+        const visualizer = document.querySelector('.visualizer');
+
+        playPauseBtn.addEventListener('click', togglePlay);
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('ended', resetPlayer);
+
+        
+        for (let i = 0; i < 20; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'visualizer-bar';
+            visualizer.appendChild(bar);
+        }
+
+        
+        initializeVisualizer();
+
+        function initializeVisualizer() {
+            const bars = document.querySelectorAll('.visualizer-bar');
+            bars.forEach(bar => {
+                const height = Math.random() * 50;
+                bar.style.height = height + 'px';
+            });
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
+                startVisualizer();
+            } else {
+                audio.pause();
+                playPauseBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
+                stopVisualizer();
+            }
+        }
+
+        function updateProgress() {
+            const progressPercentage = (audio.currentTime / audio.duration) * 100;
+            progress.style.width = `${progressPercentage}%`;
+
+            if (progressPercentage >= 99.9) {
+                stopVisualizer();
+            }
+        }
+
+        function resetPlayer() {
+            audio.currentTime = 0;
+            progress.style.width = '0%';
+            playPauseBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            `;
+            stopVisualizer();
+        }
+
+        let visualizerInterval;
+        function startVisualizer() {
+            visualizerInterval = setInterval(() => {
+                const bars = document.querySelectorAll('.visualizer-bar');
+                bars.forEach(bar => {
+                    const height = Math.random() * 50;
+                    bar.style.height = `${height}px`;
+                });
+            }, 100);
+        }
+
+        function stopVisualizer() {
+            clearInterval(visualizerInterval);
+        }
+
+    
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('background').appendChild(renderer.domElement);
+
+        const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
+        const torusKnot = new THREE.Mesh(geometry, material);
+        scene.add(torusKnot);
+
+        camera.position.z = 30;
+
+
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+
+        const starVertices = [];
+        for (let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = -Math.random() * 2000;
+            starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            torusKnot.rotation.x += 0.01;
+            torusKnot.rotation.y += 0.005;
+            stars.rotation.y += 0.0002;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        
+        gsap.from('.w-80', { duration: 1, opacity: 0, y: 50, ease: 'power3.out' });
+        gsap.to('.glow', { duration: 2, boxShadow: '0 0 30px rgba(0, 255, 255, 0.9)', repeat: -1, yoyo: true });
+
+        
+        const particleSystem = new THREE.Group();
+        scene.add(particleSystem);
+
+        function createParticle() {
+            const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+            const particle = new THREE.Mesh(geometry, material);
+            
+            particle.position.set(
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 20
+            );
+            
+            gsap.to(particle.position, {
+                duration: Math.random() * 2 + 1,
+                x: particle.position.x * 2,
+                y: particle.position.y * 2,
+                z: particle.position.z * 2,
+                repeat: -1,
+                yoyo: true,
+                ease: "power1.inOut"
+            });
+            
+            particleSystem.add(particle);
+        }
+
+        for (let i = 0; i < 100; i++) {
+            createParticle();
+        }
+    </script>
+</body>
+</html>
